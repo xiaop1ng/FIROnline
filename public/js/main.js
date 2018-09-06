@@ -54,11 +54,10 @@ function playWithAi() {
     }
 }
 
-// function alert(text) {
-//     layer.alert(text, {
-//         area: (canvas.width - 200) + 'px'
-//     });
-// }
+function rePlay() {
+    enter($('#roomId').text());
+    $('.replayBtn').hide();
+}
 
 init();
 /**
@@ -236,12 +235,13 @@ canvas.onclick = function (e) {
             })
         } else if(over && !aiFlag) {
             tips('胜利', 2);
+
+            $('.replayBtn').show();
             sendMsg({ // 将行棋信息和胜利信息发送给对手 
                 t: 9,
                 x: i,
                 y: j
             })
-            alert('胜利！');
         }
         
     }
@@ -312,7 +312,7 @@ ws.onmessage = function (e) {
             oneStep(msg.x, msg.y, false);
             tips('第二名', 2);
             over = true;
-            alert('第二名！');
+            $('.replayBtn').show();
             break;
     }
 }

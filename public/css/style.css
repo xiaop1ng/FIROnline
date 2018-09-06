@@ -71,3 +71,7 @@ footer{
     right: 10px;
     font-size: 36px;
 }
+
+.replayBtn {
+    display: none;
+}
