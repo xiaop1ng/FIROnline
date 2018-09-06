@@ -12,3 +12,13 @@
 - 更多算法待实现……
 
 ### 加入在线对战版
+
+### Start
+Step 1:
+> npm install
+
+Step 2:
+> npm run start
+
+Step 3:
+> http://127.0.0.1:3000
