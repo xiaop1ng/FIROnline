@@ -15,6 +15,7 @@ var ws_server = {},
         return _SEED_NUM
     }
 
+// 进入房间
 ws_server.enterRoom = function(w, msg) {
     var oldRoomId = w.room_id
     if(oldRoomId) {
@@ -40,6 +41,7 @@ ws_server.enterRoom = function(w, msg) {
     }
 }
 
+// 退出房间
 ws_server.exitRoom = function(w) {
     var roomId = w.room_id,
         room = null
@@ -49,12 +51,9 @@ ws_server.exitRoom = function(w) {
     if(room) {
         room.exit(w)
     }
-    sendMsg(w, {
-        t: -5,
-        room_id: roomId
-    })
 }
 
+// 行棋
 ws_server.movesTo =  function(w, msg) {
     var roomId = w.room_id,
         room = null
@@ -68,6 +67,7 @@ ws_server.movesTo =  function(w, msg) {
     }
 }
 
+// 游戏结束由胜利方发送该消息
 ws_server.gameOver = function(w, msg) {
     var roomId = w.room_id,
     room = null
@@ -96,7 +96,8 @@ var onMsg = function(msg) {
             break
         case 4: // [预留]认输
             break
-        case 5: // [预留]退出房间
+        case 5: // 退出房间
+            ws_server.exitRoom(this)
             break
         case 9: // 结束游戏 有一方获得胜利
             ws_server.gameOver(this, msg)
@@ -107,10 +108,12 @@ var onMsg = function(msg) {
 var onClose = function() {
     console.log("onclose", this)
     // TODO: 更新游戏中的状态
+    ws_server.exitRoom(this)
 }
 
 var onOpen = function(w, req) {
     console.log("conn")
+    console.log(req)
     w.id = _GEN_ID()
     USERS[w.id] = w
     _USERS.push(w)

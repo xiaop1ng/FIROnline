@@ -19,11 +19,15 @@ var chessBoard = []; // 棋盘二维数组,存储棋盘信息 0 -> 空， 1 -> �
 var chessBoardLength = 15; // 棋盘大小
 var paddingWidth = (canvas.width / chessBoardLength) / 2; // 棋盘边界宽度
 var cellWidth = (canvas.width - paddingWidth * 2) / (chessBoardLength - 1); // 15 线 =》14 格
-var chessWidth = cellWidth / 2 - 2;
+var chessWidth = cellWidth / 2 - 2; // 棋子的半径
 
 var connected = false; // 连接状态
-var ws = new WebSocket("ws://127.0.0.1:3000");
 
+var aiFlag = false; // PLAY WITH AI 标识位
+var hostName = window.location.host;
+var ws = new WebSocket("ws://" + hostName);
+
+// 初始化
 function init() {
     $('.loading').show();
     $('.content').hide();
@@ -34,6 +38,21 @@ function init() {
         $('.content').show();
         $('#chess').css('display', 'block')
     }, time);
+}
+
+function tips(text, idx) {
+    var imgSrc = 'img/face/' + idx + '.jpg';
+    $('#tipText').text(text);
+    $('#tipImg').attr('src', imgSrc);
+}
+
+function alert(text) {
+    layer.open({
+        content: text
+        ,skin: 'msg'
+        ,time: 3
+        ,style: 'height: 60px;border:none; background-color:#409EFF; color:#fff;font-size: 36px;',
+    });
 }
 
 init();
@@ -172,26 +191,26 @@ canvas.onclick = function (e) {
                 if (myWin[k] == 5) {
                     // 游戏结束
                     over = true;
-                    layer.alert('You Win!');
+                    alert('胜利!');
                 }
             }
 
         }
-        //airingGo2()
 
         // 如果游戏没有结束,轮到对手行棋
         if (!over) {
             me = !me;
-            // TODO: 对战修改为 WAITING 
             // airingGo();
         }
         if(!over) {
+            tips('对手的回合...', 4);
             sendMsg({ // 将行棋信息发送给对手 
                 t: 3,
                 x: i,
                 y: j
             })
         } else {
+            tips('胜利', 2);
             sendMsg({ // 将行棋信息和胜利信息发送给对手 
                 t: 9,
                 x: i,
@@ -226,8 +245,24 @@ ws.onmessage = function (e) {
             break;
         case -1:
             // 收到进入房间的响应 包含房间信息
-            if(msg.err == 0 && msg.room_state == 1)
-                startGame(msg.roundId == ws.id)
+            if(msg.err == 0 && msg.room_state == 1){
+                startGame(msg.roundId == ws.id);
+                if(msg.roundId == ws.id) {
+                    startGame(true);
+                    tips('游戏开始了，现在是你的回合！', 5);
+                } else {
+                    startGame(false);
+                    tips('游戏开始了，现在是对手的回合...', 8);
+                }
+                
+            } else if (msg.err == 0 && msg.room_state == 0) {
+                // TODO: 不想等了？ play with AI
+                tips('等待你的对手...', 3);
+            } else if (msg.err == 405) {
+                // TODO: 切换房间
+                tips('棋房坐满了，挤不进去了.', 1);
+            }
+                
             break;
         case -2:
             // [预留] 准备开始游戏
@@ -235,6 +270,7 @@ ws.onmessage = function (e) {
         case -3:
             // 收到对手的行棋信息
             oneStep(msg.x, msg.y, false)
+            tips('你的回合！', 6);
             if (!over) {
                 me = !me;
             }
@@ -243,15 +279,17 @@ ws.onmessage = function (e) {
             // [预留]认输
             break;
         case -5:
-            // [预留]退出房间
+            // 对手退出房间
+            tips('胜利', 2);
+            alert('Your partner exit, u Win!');
+            over = true;
             break;
         case -9:
             // 来自服务端的游戏结束的通知
-            oneStep(msg.x, msg.y, false)
-            if (!over) {
-                me = !me;
-            }
-            layer.alert('You Fail!');
+            oneStep(msg.x, msg.y, false);
+            tips('第二名', 2);
+            alert('第二名!');
+            over = true;
             break;
     }
 }

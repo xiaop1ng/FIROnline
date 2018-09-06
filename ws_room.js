@@ -1,5 +1,6 @@
 var sendMsg = require('./ws_send.js')
 
+// 游戏房间的构造器
 var ws_room = function(options) {
     if (options) {
         for (var k in options) {
@@ -12,8 +13,10 @@ var ws_room = function(options) {
     this.roundId = 0    // 记录当前回合的玩家的 Id
 }
 
+// 保存所有的房间信息
 ws_room.ROOMS = {}
 
+// 获取或创建一个房间
 ws_room.get = function(roomId) {
     var _room = ws_room.ROOMS[roomId]
 
@@ -27,6 +30,7 @@ ws_room.get = function(roomId) {
     return _room
 }
 
+// 进入房间
 ws_room.prototype.enter = function(w, msg) {
     if(w.id == this.player0.id || w.id == this.player1.id) {
         // 已经在房间了
@@ -59,6 +63,24 @@ ws_room.prototype.enter = function(w, msg) {
     }
 }
 
+// 退出房间
+ws_room.prototype.exit = function(w) {
+    this.sendToRival(w, {
+        t: -5,
+        err: 0,
+        msg: '你的对手已退出房间'
+    })
+    this.state = 0
+    // 当玩家退出房间时，直接判负
+    if(w.id == this.player0.id) {
+        this.player0 = {}
+    }
+
+    if(w.id == this.player1.id) {
+        this.player1 = {}
+    }
+}
+
 // 在房间内广播消息
 ws_room.prototype.broadcast = function(msg) {
     console.log(msg)
@@ -76,7 +98,7 @@ ws_room.prototype.sendToRival = function(w, msg) {
     if(this.state == 1) {
         if(this.player0.id == w.id) {
             sendMsg(this.player1, msg)
-        } else {
+        } else if(this.player1.id == w.id) {
             sendMsg(this.player0, msg)
         }
     } else {

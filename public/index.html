@@ -7,21 +7,22 @@
     <title>AiringGo</title>
 </head>
 <body>
-    
     <div class="loading">
-        <img width="100%" src="img/loading.gif" alt="loading~">
-        <div>loading~</div>
+        <img width="100%" src="img/loading.gif" alt="loading...">
+        <div>loading...</div>
     </div>
     <div class="content">
-        <header>
-            <!-- <button id="newgamebutton" onclick="startGame()">Start Game</div> -->
-        </header>
+        <div class="tips">
+            <img id="tipImg" src="img/face/1.jpg">
+            <span id="tipText">欢迎~</span>
+        </div>
+        <!-- <button id="newgamebutton" onclick="startGame()">Start Game</div> -->
         <img src=""/>
         <canvas id="chess"></canvas>
     </div>
 </body>
 <script src="https://cdn.bootcss.com/jquery/2.2.4/jquery.js"></script>
-<script src="https://cdn.bootcss.com/layer/3.1.0/layer.js"></script>
+<script src="js/layer.js"></script>
 <script src="js/main.js"></script>
 <script src="js/AiringGo.js"></script>
 </html>

@@ -147,7 +147,7 @@ function airingGo() {
             myWin[k] = 6;
             if (airingWin[k] == 5) {
                 over = true;
-                layer.alert('You Fail!');
+                alert('第二名!');
             }
         }
     }
