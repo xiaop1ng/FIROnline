@@ -83,7 +83,6 @@ ws_room.prototype.exit = function(w) {
 
 // 在房间内广播消息
 ws_room.prototype.broadcast = function(msg) {
-    console.log(msg)
     if(this.player0.id) {
         sendMsg(this.player0, msg)
     }

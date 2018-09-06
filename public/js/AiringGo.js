@@ -147,7 +147,7 @@ function airingGo() {
             myWin[k] = 6;
             if (airingWin[k] == 5) {
                 over = true;
-                alert('第二名!');
+                tips('没关系, 第二名', 2);
             }
         }
     }

@@ -60,3 +60,14 @@ footer{
 .tips span {
     font-size: 36px;
 }
+
+.waitting {
+    display: none;
+}
+
+.roomInfo {
+    position: absolute; 
+    bottom: 10px; 
+    right: 10px;
+    font-size: 36px;
+}

@@ -15,14 +15,16 @@
         <div class="tips">
             <img id="tipImg" src="img/face/1.jpg">
             <span id="tipText">欢迎~</span>
+            <span class="waitting">不想等了？<a href="javascript:;" onclick="playWithAi()">挑战无敌的 AI</a></span>
         </div>
         <!-- <button id="newgamebutton" onclick="startGame()">Start Game</div> -->
         <img src=""/>
         <canvas id="chess"></canvas>
     </div>
+    <div class="roomInfo"><span>当前房间：</span><a id="roomId" href="javascript:;" onclick="changeRoom()"></a></div>
 </body>
 <script src="https://cdn.bootcss.com/jquery/2.2.4/jquery.js"></script>
-<script src="js/layer.js"></script>
+<!-- <script src="https://cdn.bootcss.com/layer/3.1.0/layer.js"></script> -->
 <script src="js/main.js"></script>
 <script src="js/AiringGo.js"></script>
 </html>

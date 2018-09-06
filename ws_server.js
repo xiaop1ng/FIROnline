@@ -60,7 +60,6 @@ ws_server.movesTo =  function(w, msg) {
     if(roomId) {
         room = ws_room.get(roomId)
     }
-    console.log(room)
     if(room && room.state == 1) {
         msg.t = -3;
         room.sendToRival(w, msg)
@@ -106,14 +105,11 @@ var onMsg = function(msg) {
 }
 
 var onClose = function() {
-    console.log("onclose", this)
     // TODO: 更新游戏中的状态
     ws_server.exitRoom(this)
 }
 
 var onOpen = function(w, req) {
-    console.log("conn")
-    console.log(req)
     w.id = _GEN_ID()
     USERS[w.id] = w
     _USERS.push(w)

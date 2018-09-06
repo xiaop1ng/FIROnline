@@ -31,8 +31,7 @@ var ws = new WebSocket("ws://" + hostName);
 function init() {
     $('.loading').show();
     $('.content').hide();
-    var time = Math.floor((Math.random()*4)+2) * 1000;
-    console.log(time);
+    var time = Math.floor((Math.random()*3)+1) * 1000;
     setTimeout(function(){
         $('.loading').hide();
         $('.content').show();
@@ -46,14 +45,20 @@ function tips(text, idx) {
     $('#tipImg').attr('src', imgSrc);
 }
 
-function alert(text) {
-    layer.open({
-        content: text
-        ,skin: 'msg'
-        ,time: 3
-        ,style: 'height: 60px;border:none; background-color:#409EFF; color:#fff;font-size: 36px;',
-    });
+function playWithAi() {
+    aiFlag = true;
+    startGame(true);
+    tips('让你先行，你的回合！', 5);
+    if(connected) {
+        ws.close();
+    }
 }
+
+// function alert(text) {
+//     layer.alert(text, {
+//         area: (canvas.width - 200) + 'px'
+//     });
+// }
 
 init();
 /**
@@ -84,11 +89,15 @@ function startGame(isMeRound) {
         myWin[i] = 0;
         airingWin[i] = 0;
     }
-
+    $('.waitting').hide();
     // 让电脑先行，(7,7)处绘制黑棋，并存储信息
-    // var initLoc = Math.floor(chessBoardLength/2);
-    // oneStep(initLoc, initLoc, false);
-    // chessBoard[initLoc][initLoc] = 2;
+    if(aiFlag && !isMeRound) {
+        airingGo();
+        // var initLoc = Math.floor(chessBoardLength/2);
+        // oneStep(initLoc, initLoc, false);
+        // chessBoard[initLoc][initLoc] = 2;
+    }
+
 }
 
 /**
@@ -114,9 +123,7 @@ function cleanChess() {
  * 绘制棋盘
  */
 function drawChess() {
-    console.log(paddingWidth);
-    console.log(cellWidth);
-    console.log(paddingWidth);
+
     for (var i = 0; i < chessBoardLength; i++) {
         context.strokeStyle = "#4b4b4b";
         context.beginPath();
@@ -145,10 +152,10 @@ function oneStep(i, j, me) {
     context.arc(paddingWidth + i * cellWidth, paddingWidth + j * cellWidth, chessWidth, 0, 2 * Math.PI);
     context.closePath();
     var gradient = context.createRadialGradient(paddingWidth + i * cellWidth + 2, paddingWidth + j * cellWidth - 2, chessWidth, paddingWidth + i * cellWidth + 2, paddingWidth + j * cellWidth - 2, 0);
-    if (me) {
+    if (me) { // 白棋
         gradient.addColorStop(0, "#D1D1D1");
         gradient.addColorStop(1, "#F9F9F9");
-    } else {
+    } else { // 黑棋
         gradient.addColorStop(0, "#0A0A0A");
         gradient.addColorStop(1, "#636766");
     }
@@ -156,6 +163,23 @@ function oneStep(i, j, me) {
     context.fill();
 }
 
+function changeRoom() {
+    var newRoomId = prompt("换个房间玩儿，请输入房间号：");
+    if(newRoomId) {
+        enter(newRoomId);
+    }
+}
+
+function enter(roomId) {
+    if(connected) {
+        // 进入房间 房间号默认 520
+        sendMsg({
+            t: 1,
+            room_id: roomId
+        });
+        $('#roomId').text(roomId);
+    }
+}
 
 /**
  * canvas 鼠标点击事件
@@ -171,7 +195,6 @@ canvas.onclick = function (e) {
     var y = e.offsetY;
     var i = Math.floor(x / cellWidth);
     var j = Math.floor(y / cellWidth);
-    console.log(i, j)
 
     // 如果该位置没有棋子,则允许落子
     if (chessBoard[i][j] == 0) {
@@ -191,7 +214,6 @@ canvas.onclick = function (e) {
                 if (myWin[k] == 5) {
                     // 游戏结束
                     over = true;
-                    alert('胜利!');
                 }
             }
 
@@ -200,22 +222,26 @@ canvas.onclick = function (e) {
         // 如果游戏没有结束,轮到对手行棋
         if (!over) {
             me = !me;
-            // airingGo();
+            if(aiFlag) {
+                tips('还是你的回合！', Math.floor((Math.random()*8)+1));
+                airingGo();
+            }
         }
-        if(!over) {
+        if(!over && !aiFlag) {
             tips('对手的回合...', 4);
             sendMsg({ // 将行棋信息发送给对手 
                 t: 3,
                 x: i,
                 y: j
             })
-        } else {
+        } else if(over && !aiFlag) {
             tips('胜利', 2);
             sendMsg({ // 将行棋信息和胜利信息发送给对手 
                 t: 9,
                 x: i,
                 y: j
             })
+            alert('胜利！');
         }
         
     }
@@ -230,18 +256,11 @@ ws.onopen = function (e) {
 // 处理服务器发送过来的消息
 ws.onmessage = function (e) {
     var msg = JSON.parse(e.data);
-    console.log(msg)
     switch (msg.t) {
         case 0:
             ws.id = msg.id
             // 建立连接的响应
-            if(connected) {
-                // 进入房间 房间号默认 520
-                sendMsg({
-                    t: 1,
-                    room_id: 521
-                })
-            }
+            enter('001')
             break;
         case -1:
             // 收到进入房间的响应 包含房间信息
@@ -256,11 +275,16 @@ ws.onmessage = function (e) {
                 }
                 
             } else if (msg.err == 0 && msg.room_state == 0) {
-                // TODO: 不想等了？ play with AI
                 tips('等待你的对手...', 3);
+                setTimeout(function(){
+                    if(!begin) {
+                        $('.waitting').fadeIn();
+                    }
+                }, 6000); // 6s 没有人进入显示提示
             } else if (msg.err == 405) {
-                // TODO: 切换房间
+                // 切换房间
                 tips('棋房坐满了，挤不进去了.', 1);
+                changeRoom();
             }
                 
             break;
@@ -280,16 +304,15 @@ ws.onmessage = function (e) {
             break;
         case -5:
             // 对手退出房间
-            tips('胜利', 2);
-            alert('Your partner exit, u Win!');
+            tips('你的对手逃跑了，你赢了.', 2);
             over = true;
             break;
         case -9:
             // 来自服务端的游戏结束的通知
             oneStep(msg.x, msg.y, false);
             tips('第二名', 2);
-            alert('第二名!');
             over = true;
+            alert('第二名！');
             break;
     }
 }
