@@ -55,9 +55,6 @@ footer{
 .tips {
     display:flex;
     align-items: center;/*垂直轴居中*/
-}
-
-.tips span {
     font-size: 36px;
 }
 
